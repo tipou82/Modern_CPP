@@ -1,0 +1,16 @@
+# CMake Build-Verzeichnis
+build/
+cmake-build-*/
+
+# IDE-Dateien
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Kompilier-Artefakte (falls außerhalb build/)
+*.o
+*.a
+*.so
+*.out
