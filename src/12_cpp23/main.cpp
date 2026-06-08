@@ -6,6 +6,16 @@
 // ║            if consteval, static operator(), std::string::contains,      ║
 // ║            ranges::zip / enumerate / chunk, auto(x) decay-copy          ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
+// MISRA C++:2023 – Bezüge in diesem Thema (MISRA basiert auf C++17;
+// C++23-Features schließen die hier genannten Lücken):
+//   Rule 18.1.1 (Required) – Exception objects shall not have pointer type
+//                             → std::expected<T,E> als exceptions-freie Alternative
+//   Rule 18.4.1 (Required) – Exception-unfriendly functions shall be noexcept
+//                             → if consteval trennt Compile-Zeit von Laufzeit-Pfaden
+//   Rule 10.2.1 (Required) – Enumeration shall have explicit underlying type
+//   Rule 10.2.2 (Advisory) – No unscoped enumerations
+//                             → std::to_underlying(e) als typsicherer Weg zur
+//                             Konvertierung (kein static_cast mit hartem Typ nötig)
 //
 // ──── Was ist neu in C++23? ───────────────────────────────────────────────
 //

@@ -3,6 +3,11 @@
 // ║  Features: vector, array, map, unordered_map, set, deque,               ║
 // ║            Iteratoren, Erase-Remove, partition, iota, ranges            ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
+// MISRA C++:2023 – Schlüsselregeln in diesem Thema:
+//   Rule 11.3.1 (Advisory) – Variables of array type should not be declared
+//                             → std::array<T,N> statt int arr[N]
+//   Rule 7.11.2 (Required) – An array passed as a function argument shall
+//                             not decay to a pointer → std::array / std::span
 //
 // ──── Überblick: Container-Typen ─────────────────────────────────────────
 //
@@ -136,6 +141,15 @@ void demo_vector() {
 //   - Hat .size(), .begin(), .end() → funktioniert mit allen Algorithmen
 //   - Hat .at() für bounds-checked Zugriff
 //   - Kann by-value kopiert werden (kein Decay zu Zeiger!)
+//
+// ⚠️  MISRA C++:2023 Rule 11.3.1 (Advisory):
+//     "Variables of array type should not be declared."
+//     C-Arrays verlieren ihre Größeninformation wenn sie als Parameter
+//     übergeben werden → std::array<T,N> oder std::span<T> verwenden.
+// ⚠️  MISRA C++:2023 Rule 7.11.2 (Required):
+//     "An array passed as a function argument shall not decay to a pointer."
+//     void f(int arr[])  ← MISRA Non-compliant! Größe geht verloren.
+//     void f(std::array<int,5>& arr)  oder  void f(std::span<int> arr)  ← OK.
 
 void demo_array() {
     std::cout << "\n=== 2. std::array ===\n";

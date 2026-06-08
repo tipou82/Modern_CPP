@@ -3,6 +3,12 @@
 // ║  Features: duration, duration_cast, Clocks, time_point,                 ║
 // ║            Laufzeit messen, Literal-Syntax, sleep                       ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
+// MISRA C++:2023 – Bezüge in diesem Thema:
+//   std::chrono::duration erzwingt explizite Einheitenkonvertierung
+//   (duration_cast) und macht Einheitenverwechslungen (s vs ms) zum
+//   Compile-Zeit-Fehler — entspricht MISRA's Typ-Sicherheitsziel.
+//   steady_clock statt system_clock verhindert nicht-monotones Zeitverhalten
+//   in zeitkritischem Code (Embedded / RTOS).
 //
 // ──── Überblick: Drei Hauptbausteine ──────────────────────────────────────
 //

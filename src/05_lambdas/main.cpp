@@ -3,6 +3,12 @@
 // ║  Features: Lambda-Syntax, Captures, generische Lambdas,                 ║
 // ║            std::function, Lambdas in Algorithmen, Closures              ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
+// MISRA C++:2023 – Schlüsselregeln in diesem Thema:
+//   Rule 8.1.1 (Required) – A non-transient lambda shall not implicitly
+//                            capture this
+//   Rule 8.1.2 (Advisory) – Variables should be captured explicitly in a
+//                            non-transient lambda (kein [&] / [=] für
+//                            gespeicherte oder asynchron ausgeführte Lambdas)
 //
 // ──── Was ist ein Lambda? ─────────────────────────────────────────────────
 //
@@ -101,6 +107,16 @@ void demo_grundsyntax() {
 //
 // ⚠️  Achtung bei [&]: Lambda darf das umgebende Objekt nicht überleben!
 //     (Dangling Reference)
+//
+// ⚠️  MISRA C++:2023 Rule 8.1.2 (Advisory):
+//     "Variables should be captured explicitly in a non-transient lambda."
+//     Non-transient = Lambda wird gespeichert, weitergegeben oder async ausgeführt.
+//     [&] und [=] verbergen, was genau gecaptured wird → Dangling Reference-Bugs.
+//     Lösung: [x, y] explizit statt [&] oder [=].
+//
+// ⚠️  MISRA C++:2023 Rule 8.1.1 (Required):
+//     "A non-transient lambda shall not implicitly capture this."
+//     [=] in Klassen-Methoden captured this implizit → Lifetime-Bug!
 
 void demo_captures() {
     std::cout << "\n=== 2. Captures ===\n";

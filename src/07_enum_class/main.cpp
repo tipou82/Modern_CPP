@@ -3,6 +3,11 @@
 // ║  Features: C-Enum Probleme, enum class, Underlying Type,                ║
 // ║            switch, Bitmasken, Operator-Overloading                      ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
+// MISRA C++:2023 – Schlüsselregeln in diesem Thema:
+//   Rule 10.2.1 (Required) – An enumeration shall be defined with an explicit
+//                             underlying type → enum class Status : uint8_t
+//   Rule 10.2.2 (Advisory) – Unscoped enumerations should not be declared
+//                             → immer enum class / enum struct statt enum
 //
 // ──── Das Problem mit C-Enums ─────────────────────────────────────────────
 //
@@ -122,6 +127,14 @@ void demo_grundlagen() {
 //   - uint8_t: Sehr viele kleine Enums (z.B. Protokoll-Bytes)
 //   - uint32_t: Bitmasken (Flags)
 //   - int64_t: Wenn Werte größer als INT_MAX sein könnten
+//
+// ⚠️  MISRA C++:2023 Rule 10.2.1 (Required):
+//     "An enumeration shall be defined with an explicit underlying type."
+//     Ohne expliziten Typ ist die Größe implementierungsdefiniert → nicht
+//     portabel. In sicherheitskritischem Code (z.B. Protokoll-Bytes über CAN)
+//     MUSS die Bitbreite garantiert sein.
+//     Compliant: enum class Richtung : uint8_t { ... }
+//     Non-compliant: enum class Richtung { ... }  // Größe unbekannt!
 
 // Kleiner Enum: nur 1 Byte nötig (256 mögliche Werte)
 enum class Richtung : uint8_t { Nord = 0, Sued, Ost, West };

@@ -3,6 +3,10 @@
 // ║  Features: auto, constexpr, range-for, structured bindings,             ║
 // ║            if-init, [[nodiscard]], nullptr, Type Aliases                ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
+// MISRA C++:2023 – Schlüsselregeln in diesem Thema:
+//   Rule 0.1.2  (Required) – Return value shall be used         → [[nodiscard]]
+//   Rule 0.0.1  (Required) – No unreachable code                → constexpr-Zweige
+//   Rule 8.2.2  (Required) – C-style casts shall not be used    → static_cast
 //
 // Ziel dieses Tutorials:
 //   Moderne C++ (ab C++11/17) hat viele Features eingeführt, die Code
@@ -229,6 +233,12 @@ void demo_if_init() {
 //
 // Lösung: [[nodiscard]] am Funktionskopf oder am Return-Typ
 //   Der Compiler erzeugt eine Warnung wenn der Rückgabewert ignoriert wird.
+//
+// ⚠️  MISRA C++:2023 Rule 0.1.2 (Required):
+//     "The value returned by a function shall be used."
+//     [[nodiscard]] ist der Mechanismus, mit dem C++ diese Regel erzwingt.
+//     In sicherheitskritischem Code (Automotive, Avionik) darf kein
+//     Fehlercode stillschweigend ignoriert werden.
 //
 // Typische Anwendungsfälle:
 //   - Fehlercodes / Status-Werte

@@ -2,6 +2,15 @@
 // ║  THEMA 02 – Smart Pointers & RAII                                       ║
 // ║  Features: unique_ptr, shared_ptr, weak_ptr, make_unique/make_shared    ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
+// MISRA C++:2023 – Schlüsselregeln in diesem Thema:
+//   Rule 21.6.1  (Required) – Dynamic memory should not be used
+//                              → kein raw new/delete, smart pointers verwenden
+//   Rule 21.6.2  (Required) – Dynamic memory shall be managed automatically
+//                              → make_unique / make_shared statt new
+//   Rule 23.11.1 (Advisory) – Raw pointer ctors of shared_ptr/unique_ptr
+//                              shall not be used → immer make_unique/make_shared
+//   Rule 15.1.3  (Required) – Single-argument constructors shall be explicit
+//                              → explicit Ressource(std::string n, int w = 0)
 //
 // ──── Das Problem mit rohen Zeigern (raw pointers) ────────────────────────
 //
@@ -80,6 +89,9 @@ void demo_unique_ptr() {
     // make_unique<T>(args...) ist sicherer als new!
     // Grund: unique_ptr<T>(new T(a), new T(b)) kann bei einer Exception leaken,
     //        make_unique nicht.
+    // ⚠️  MISRA C++:2023 Rule 23.11.1 (Advisory): Raw pointer constructors of
+    //     std::unique_ptr and std::shared_ptr should not be used.
+    //     → Immer make_unique<T>() / make_shared<T>() statt unique_ptr<T>(new T())
     auto ressource = std::make_unique<Ressource>("Datenbank", 100);
 
     // Zugriff über -> (wie bei rohem Zeiger)

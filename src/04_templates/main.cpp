@@ -3,6 +3,11 @@
 // ║  Features: Funktions-Templates, Klassen-Templates,                      ║
 // ║            Template-Spezialisierung, if constexpr, Concepts (C++20)     ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
+// MISRA C++:2023 – Schlüsselregeln in diesem Thema:
+//   Rule 17.8.1 (Required) – Function templates shall not be explicitly
+//                             specialized → Concepts oder Overloads bevorzugen
+//   Rule 8.2.2  (Required) – C-style casts and functional notation casts
+//                             shall not be used → static_cast etc.
 //
 // ──── Warum Templates? ────────────────────────────────────────────────────
 //
@@ -162,6 +167,14 @@ void demo_klassen_templates() {
 //
 // Vollständige Spezialisierung: template<>  (alle Typ-Parameter festgelegt)
 // Partielle Spezialisierung:    template<typename T>  (einige festgelegt)
+//
+// ⚠️  MISRA C++:2023 Rule 17.8.1 (Required):
+//     "Function templates shall not be explicitly specialized."
+//     Explizite Funktions-Spezialisierungen (template<> void f<bool>(...))
+//     interagieren schlecht mit Overload Resolution und sind fehleranfällig.
+//     MISRA-konformer Weg: Funktion überladen ODER Klassen-Template + partielle
+//     Spezialisierung ODER Concepts (C++20) verwenden.
+//     Die unten gezeigten Spezialisierungen dienen nur zu Demonstrations-Zwecken.
 
 // Primäre Template-Definition (für alle Typen)
 template<typename T>

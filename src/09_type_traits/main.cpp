@@ -3,6 +3,11 @@
 // ║  Features: Typ-Kategorien, Typ-Eigenschaften, Typ-Transformationen,     ║
 // ║            std::conditional, enable_if / SFINAE, praktische Nutzung     ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
+// MISRA C++:2023 – Bezüge in diesem Thema:
+//   Rule 8.2.2  (Required) – C-style casts shall not be used
+//                             → Type Traits ermöglichen präzise Typ-Kontrolle,
+//                             die sichere Casts (static_cast) erst möglich macht.
+//   static_assert mit Type Traits = MISRA-kompatibles Compile-Zeit-Feedback.
 //
 // ──── Was sind Type Traits? ───────────────────────────────────────────────
 //

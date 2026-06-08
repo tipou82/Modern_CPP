@@ -3,6 +3,11 @@
 // ║  Features: optional (fehlende Werte), variant (typsichere Union),       ║
 // ║            visit (Pattern Matching), any (beliebige Typen)              ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
+// MISRA C++:2023 – Schlüsselregeln in diesem Thema:
+//   Rule 18.1.1 (Required) – An exception object shall not have pointer type
+//                             → std::optional / std::expected als Alternative
+//   std::optional verhindert Null-Dereferenzierung (MISRA-Sicherheitsziel).
+//   std::variant ersetzt union: kein undefined behavior, volles RAII.
 //
 // ──── Das Problem: "Kein Wert" ausdrücken ─────────────────────────────────
 //
@@ -121,6 +126,10 @@ void demo_optional() {
 //   - Typsicher: Weiß immer welcher Typ aktiv ist
 //   - RAII: Ruft Konstruktor/Destruktor automatisch auf
 //   - Kein undefined behavior beim falschen Zugriff (wirft std::bad_variant_access)
+//
+// ⚠️  MISRA C++:2023 – std::variant ist der MISRA-konforme Ersatz für union.
+//     C-unions haben keinen Destruktor, kein Typ-Tracking und erzeugen
+//     undefined behavior beim Zugriff auf den falschen Member.
 //
 // Wichtige Operationen:
 //   std::holds_alternative<T>(v)  → bool: enthält v ein T?

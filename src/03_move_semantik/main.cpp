@@ -4,6 +4,15 @@
 // ║            Move-Konstruktor, Move-Assignment, Regel der Fünf,           ║
 // ║            Perfect Forwarding mit std::forward                          ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
+// MISRA C++:2023 – Schlüsselregeln in diesem Thema:
+//   Rule 15.0.1 (Required) – Special member functions shall be provided
+//                             appropriately (Regel der Fünf / Null)
+//   Rule 15.0.2 (Advisory) – User-provided copy/move functions should have
+//                             appropriate signatures (noexcept bei Move)
+//   Rule 18.4.1 (Required) – Exception-unfriendly functions (Move-Ctors,
+//                             Move-Assignment, Destruktoren) shall be noexcept
+//   Rule 15.1.3 (Required) – Constructors callable with a single argument
+//                             shall be explicit
 //
 // ──── Das Problem: Kopieren ist teuer ─────────────────────────────────────
 //
@@ -88,6 +97,10 @@ public:
     //   - Kein new[], kein strcpy → sehr schnell!
     //
     // Parameter: StringPuffer&& = rvalue-Referenz (bindet an temporäre Objekte)
+    // ⚠️  MISRA C++:2023 Rule 18.4.1 (Required): Move-Konstruktoren müssen
+    //     noexcept sein — std::vector fällt sonst auf den langsamen Copy-Pfad
+    //     zurück und kann keine starke Exception-Safety mehr garantieren.
+    //     Rule 15.0.2 (Advisory): korrekte Signatur mit & und noexcept.
     StringPuffer(StringPuffer&& andere) noexcept
         : groesse_{andere.groesse_}
         , daten_{andere.daten_}   // Zeiger stehlen!

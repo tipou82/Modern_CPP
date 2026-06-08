@@ -4,6 +4,13 @@
 // ║            std::atomic, std::async, std::future, std::promise,          ║
 // ║            std::condition_variable, std::call_once, thread_local         ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
+// MISRA C++:2023 – Schlüsselregeln in diesem Thema:
+//   Rule 18.4.1 (Required) – Exception-unfriendly functions shall be noexcept
+//                             → thread-sichere Destruktoren und Move-Ops
+//   Rule 21.6.2 (Required) – Dynamic memory shall be managed automatically
+//                             → lock_guard / unique_lock (RAII für Mutexe)
+//   MISRA Concurrency-Kapitel: std::atomic für lock-free Zugriff, keine
+//   direkten .lock()/.unlock()-Aufrufe (nur via RAII-Wrapper).
 //
 // ──── Warum Concurrency? ──────────────────────────────────────────────────
 //
@@ -107,6 +114,11 @@ void demo_thread_grundlagen() {
 //
 //   std::unique_lock<std::mutex> → Flexibler: kann auch manuell unlock/lock
 //                                   Nötig für std::condition_variable
+//
+// ⚠️  MISRA C++:2023 Rule 18.4.1 (Required):
+//     Destruktoren und Funktionen die keine Exceptions werfen können (wie
+//     lock_guard::~lock_guard) müssen noexcept sein.
+//     std::lock_guard garantiert noexcept-Destruktor → RAII-Unlock ist sicher.
 
 // Unsicherer globaler Zähler (ohne Mutex)
 int unsicher_zaehler = 0;

@@ -32,6 +32,35 @@ Jedes Thema ist ein eigenständiges, ausführlich kommentiertes Programm.
 
 ---
 
+## MISRA C++ 2023 – Bezüge zu diesem Tutorial
+
+[MISRA C++:2023](https://misra.org.uk/misra-cpp/) (veröffentlicht März 2023, Basis: ISO C++17) ist der Industriestandard für sicherheitskritisches C++ in Automotive, Avionik und Medizintechnik. Die Tabelle zeigt, welche Regeln die hier gelernten Features direkt adressieren.
+
+| Regel | Typ | Feature in diesem Tutorial |
+|-------|-----|---------------------------|
+| **0.0.1** No unreachable code | Required | Alle Themen: kein toter Code |
+| **0.1.2** Return value shall be used | Required | Thema 01: `[[nodiscard]]` erzwingt diese Regel |
+| **7.11.2** Array shall not decay to pointer as function argument | Required | Thema 08: `std::span` / `std::array` statt `T[]` |
+| **8.1.1** Non-transient lambda shall not implicitly capture `this` | Required | Thema 05: explizite Capture-Liste |
+| **8.1.2** Variables should be captured explicitly in non-transient lambda | Advisory | Thema 05: `[x]` statt `[&]` / `[=]` |
+| **8.2.2** C-style casts shall not be used | Required | Alle Themen: nur `static_cast`, `const_cast` etc. |
+| **10.2.1** Enumeration shall be defined with an explicit underlying type | Required | Thema 07: `enum class Status : uint8_t` |
+| **10.2.2** Unscoped enumerations should not be declared | Advisory | Thema 07: `enum class` statt `enum` |
+| **11.3.1** Variables of array type should not be declared | Advisory | Thema 08: `std::array<T,N>` statt `int arr[N]` |
+| **15.0.1** Special member functions shall be provided appropriately | Required | Thema 03: Regel der Fünf / Regel der Null |
+| **15.0.2** User-provided copy/move functions should have appropriate signatures | Advisory | Thema 03: korrekte Signaturen mit `noexcept` |
+| **15.1.3** Single-argument constructors shall be `explicit` | Required | Themen 02 / 03: kein impliziter Einzel-Arg-Konstruktor |
+| **17.8.1** Function templates shall not be explicitly specialized | Required | Thema 04: Concepts statt expliziter Spezialisierung |
+| **18.1.1** Exception object shall not have pointer type | Required | Thema 12: `std::expected` als Exception-Alternative |
+| **18.4.1** Exception-unfriendly functions shall be `noexcept` | Required | Themen 03 / 11 / 12: `noexcept` bei Move, Destruktoren |
+| **21.6.1** Dynamic memory should not be used | Required | Thema 02: kein `new` / `delete` → smart pointers |
+| **21.6.2** Dynamic memory shall be managed automatically | Required | Thema 02: `make_unique`, `make_shared` |
+| **23.11.1** Raw pointer ctors of `shared_ptr` / `unique_ptr` should not be used | Advisory | Thema 02: immer `make_unique` / `make_shared` |
+
+> **Hinweis:** MISRA C++:2023 basiert auf C++17. `std::expected` (C++23) und `std::to_underlying` (C++23) sind noch nicht direkt erfasst, füllen aber die in den Regeln adressierten Lücken (explizite Fehlerbehandlung, sichere Enum-Konvertierung).
+
+---
+
 ## Inhaltsverzeichnis
 
 | # | Thema | Safety-Features | C++-Version |
@@ -165,6 +194,8 @@ int status = verbinden("srv"); // ✓ Fehlercode wird behandelt
 > **Wann nutzen:** Immer wenn der Rückgabewert ein Fehlercode, allokierter  
 > Speicher oder ein Status ist, der nie ignoriert werden darf.
 
+> **MISRA C++:2023** – `[[nodiscard]]` ist die syntaktische Umsetzung von Regel **0.1.2** (Required): Rückgabewerte von Funktionen müssen verwendet werden.
+
 ### ⚠️ Safety: `nullptr` statt `NULL`
 
 ```cpp
@@ -236,6 +267,8 @@ struct Node { std::weak_ptr<Node> next; };
 | Beobachten ohne Besitz | `weak_ptr` |
 | Kein Heap, lokale Variable | Stack-Objekt (kein Pointer!) |
 
+> **MISRA C++:2023** – Direkte Umsetzung von Regel **21.6.1** (Required: kein dynamisches Speicher direkt), **21.6.2** (Required: automatische Verwaltung) und **23.11.1** (Advisory: kein `new` in smart-pointer-Konstruktoren → immer `make_unique` / `make_shared`). `explicit` Konstruktoren: Regel **15.1.3** (Required).
+
 ---
 
 ## 03 Move-Semantik
@@ -284,6 +317,8 @@ MeineKlasse(MeineKlasse&&) noexcept { ... }  // ← noexcept IMMER hinzufügen!
 > `noexcept` auf Move-Operationen erlaubt `std::vector` starke Exception-Safety  
 > zu garantieren. Ohne `noexcept` fällt vector auf den Copy-Pfad zurück.
 
+> **MISRA C++:2023** – Regel **15.0.1** (Required: Regel der Fünf – alle fünf Spezialmethoden konsistent definieren), **15.0.2** (Advisory: korrekte Signaturen), **18.4.1** (Required: `noexcept` bei Move-Konstruktoren und Move-Assignment), **15.1.3** (Required: `explicit` für Einzel-Argument-Konstruktoren).
+
 ---
 
 ## 04 Templates & Concepts
@@ -331,6 +366,8 @@ void verarbeite(const T& v) {
 }
 ```
 
+> **MISRA C++:2023** – Regel **17.8.1** (Required: Funktions-Templates dürfen nicht explizit spezialisiert werden → Concepts oder Overloads bevorzugen). Regel **8.2.2** (Required: kein C-Cast) – alle Typkonvertierungen nur mit `static_cast` etc.
+
 ---
 
 ## 05 Lambdas & `std::function`
@@ -371,6 +408,8 @@ std::erase_if(v, [](int x) { return x < 0; });  // Alle Negativen entfernen
 std::sort(v.begin(), v.end(), [](int a, int b) { return a < b; });
 bool hat_grosse = std::any_of(v.begin(), v.end(), [](int x) { return x > 100; });
 ```
+
+> **MISRA C++:2023** – Regel **8.1.1** (Required: non-transient Lambdas dürfen `this` nicht implizit capturen) und **8.1.2** (Advisory: Variablen sollen explizit gecaptured werden, kein `[&]` / `[=]` für gespeicherte/asynchrone Lambdas). Begründung: implizite Captures verschleiern Abhängigkeiten und provozieren Dangling References.
 
 ---
 
@@ -417,6 +456,8 @@ std::visit(Overloaded{
 }, mein_variant);
 ```
 
+> **MISRA C++:2023** – `std::optional` verhindert Null-Dereferenzierung (MISRA-Sicherheitsziel). `std::variant` ersetzt `union` (kein undefined behavior bei Typ-Mismatch). Regel **18.1.1** (Required: Exception-Objekte dürfen keine Zeiger sein) – `std::optional` / `std::expected` sind typsichere Alternativen zu Ausnahmen für erwartbare Fehler.
+
 ---
 
 ## 07 enum class
@@ -445,6 +486,8 @@ int x = static_cast<int>(f);       // Nur explizit möglich
 enum class Status : uint8_t { OK = 0, Warnung = 1, Fehler = 2 };
 // Größe garantiert 1 Byte → sicher für Netzwerkprotokolle
 ```
+
+> **MISRA C++:2023** – Direkte Umsetzung von Regel **10.2.1** (Required: jede Enumeration muss einen expliziten Underlying Type deklarieren) und **10.2.2** (Advisory: keine unscoped `enum`, immer `enum class` / `enum struct`). Beide Regeln verhindern implizite Konvertierungen zu `int` und unspezifizierte Bitbreiten.
 
 ---
 
@@ -483,6 +526,8 @@ std::any_of(v.begin(), v.end(), pred);   // Gibt es ein Element das pred erfüll
 std::all_of(v.begin(), v.end(), pred);   // Erfüllen ALLE Elemente pred?
 std::none_of(v.begin(), v.end(), pred);  // Kein Element erfüllt pred?
 ```
+
+> **MISRA C++:2023** – Regel **11.3.1** (Advisory: keine C-Array-Variablen, `std::array<T,N>` verwenden) und **7.11.2** (Required: Arrays dürfen bei Funktionsübergabe nicht zu Zeigern zerfallen → `std::array` / `std::span` übergeben). `.at()` statt `operator[]` für Bounds-Checking aligns with MISRA's no-UB-goal.
 
 ---
 
@@ -523,6 +568,8 @@ using ZahlTyp = std::conditional_t<BIG, long long, int>;
 ZahlTyp<true>  grosse_zahl = 1'000'000'000'000LL;
 ZahlTyp<false> kleine_zahl = 42;
 ```
+
+> **MISRA C++:2023** – Type Traits ermöglichen präzise Typ-Kontrolle zur Compile-Zeit und sind die Grundlage von Concepts. `static_assert` macht MISRA-relevante Typ-Invarianten zur Compile-Zeit prüfbar. Unterstützen Regel **8.2.2** (kein C-Cast) durch exakte Typ-Informationen.
 
 ---
 
@@ -567,6 +614,8 @@ public:
 };
 { Timer t; std::sort(v.begin(), v.end()); }  // Automatisch gemessen
 ```
+
+> **MISRA C++:2023** – `std::chrono::duration` macht Einheitenverwechslungen (Sekunden vs. Millisekunden) zur Compile-Zeit unmöglich — der Compiler erzwingt explizite Konvertierung (`duration_cast`). Das entspricht MISRA's Typ-Sicherheitsziel und verhindert eine ganze Klasse von Laufzeit-Bugs.
 
 ---
 
@@ -627,6 +676,8 @@ cv.wait(lock, []{ return !queue.empty(); });
 std::once_flag flag;
 std::call_once(flag, initialisiere);
 ```
+
+> **MISRA C++:2023** – `std::lock_guard` RAII entspricht dem Automatismus von Regel **21.6.2** auf Mutex-Ebene (kein manuelles unlock). `std::atomic` vermeidet Data Races (MISRA Concurrency-Kapitel). Regel **18.4.1** (Required): thread-sichere Funktionen — insbesondere Destruktoren und Move-Operatoren — müssen `noexcept` sein.
 
 ---
 
@@ -725,6 +776,9 @@ for (auto [name, wert] : std::views::zip(namen, werte))
 // views::chunk: In Blöcke aufteilen
 for (auto block : v | std::views::chunk(3)) { ... }
 ```
+
+> **MISRA C++:2023** – `std::expected` schließt die Lücke von Regel **18.1.1** (Required: Exception-Objekte nicht als Zeiger) und macht Fehlerbehandlung explizit ohne Exceptions. `std::to_underlying` ist der typsichere Weg für Enum-Konvertierungen (Kontext: Regeln **10.2.1** / **10.2.2**). Regel **18.4.1** (Required): `noexcept` bei `if consteval`-Funktionen und constexpr-Kontexten.  
+> *Hinweis: MISRA C++:2023 basiert auf C++17 – C++23-Features werden in künftigen Revisionen abgedeckt.*
 
 ---
 
