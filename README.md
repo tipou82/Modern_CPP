@@ -74,8 +74,8 @@ sudo apt install g++-12           # Zusätzlich für Thema 12 (C++23)
 
 ```bash
 # 1. Repository klonen
-git clone https://github.com/tipou82/CPP_Playground.git
-cd CPP_Playground
+git clone https://github.com/tipou82/Modern_CPP.git
+cd Modern_CPP
 
 # 2. Build-Verzeichnis konfigurieren (einmalig)
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
@@ -102,7 +102,7 @@ done
 ## Projektstruktur
 
 ```
-CPP_Playground/
+Modern_CPP/
 ├── CMakeLists.txt
 └── src/
     ├── 01_basics/          main.cpp  (~250 Zeilen)

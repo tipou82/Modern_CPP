@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(CPP_Playground CXX)
+project(Modern_CPP CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
