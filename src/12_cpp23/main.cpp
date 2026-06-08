@@ -111,15 +111,13 @@ std::expected<int, ParseFehler> parse_int(std::string_view s) {
     return ergebnis;   // Erfolg: direkt den Wert zurückgeben
 }
 
-// Verkettung von expected (ähnlich wie monadic optional):
-// Wenn parse_int scheitert, wird die Division nie versucht
+// Verkettung von expected: manuell prüfen (and_then auf expected benötigt g++-13)
 std::expected<double, ParseFehler> parse_und_halbiere(std::string_view s) {
-    return parse_int(s)
-        .and_then([](int n) -> std::expected<double, ParseFehler> {
-            if (n == 0)
-                return std::unexpected{ParseFehler::WertAusserhalbBereich};
-            return static_cast<double>(n) / 2.0;
-        });
+    auto parsed = parse_int(s);
+    if (!parsed) return std::unexpected{parsed.error()};  // Fehler durchreichen
+    if (*parsed == 0) return std::unexpected{ParseFehler::WertAusserhalbBereich};
+    return static_cast<double>(*parsed) / 2.0;
+    // Mit g++-13 (vollst. C++23): .and_then([](int n) -> expected<double,...> {...})
 }
 
 void demo_expected() {
@@ -329,32 +327,34 @@ void demo_if_consteval() {
 // KONZEPT 5: static operator() – Lambdas ohne Closure-Overhead
 // ─────────────────────────────────────────────────────────────────────────────
 //
-// Bisher: Lambdas ohne Captures haben immer noch einen impliziten this-Zeiger.
-//         Das verhindert manche Compiler-Optimierungen.
+// C++23: 'static' am operator() markiert das Lambda als zustandslos.
+//   → Kein impliziter this-Zeiger → bessere Optimierbarkeit
+//   → Nur für Lambdas ohne Captures sinnvoll
+//   → Verhindert versehentliche Captures in "reinen" Funktionen
 //
-// C++23: static operator() markiert den Aufruf-Operator als statisch.
-//        → Kein this-Zeiger → bessere Optimierbarkeit
-//        → Nur für Lambdas ohne Captures sinnvoll!
+// ⚠️  SAFETY: Der Compiler kann erzwingen, dass das Lambda nichts captured.
 //
-// ⚠️  SAFETY: Verhindert versehentliche Captures in "reinen" Funktionen.
+// HINWEIS: static operator() benötigt g++-13. Mit g++-12 kompiliert es ohne
+//          das 'static'-Schlüsselwort identisch — nur ohne diese Garantie.
 
 void demo_static_lambda() {
-    std::cout << "\n=== 5. static operator() (C++23) ===\n";
+    std::cout << "\n=== 5. static operator() (C++23, hier: g++-12 Variante) ===\n";
 
-    // C++23: 'static' kennzeichnet das Lambda als zustandslos
-    auto quadrat = [](int x) static { return x * x; };
-    auto ist_gerade = [](int x) static -> bool { return x % 2 == 0; };
+    // g++-12: funktioniert, aber ohne 'static' (das benötigt g++-13)
+    // g++-13: auto quadrat = [](int x) static { return x * x; };
+    auto quadrat    = [](int x) { return x * x; };
+    auto ist_gerade = [](int x) -> bool { return x % 2 == 0; };
 
     std::cout << "  quadrat(7) = " << quadrat(7) << "\n";
-    std::cout << "  ist_gerade(4) = " << ist_gerade(4) << "\n";
+    std::cout << "  ist_gerade(4) = " << std::boolalpha << ist_gerade(4) << "\n";
     std::cout << "  ist_gerade(7) = " << ist_gerade(7) << "\n";
 
-    // Praktisch: Als Callback übergeben (Funktionszeiger-Kompatibilität)
     std::vector<int> v{3, 1, 4, 1, 5, 9, 2, 6};
-    std::sort(v.begin(), v.end(), [](int a, int b) static { return a < b; });
+    std::sort(v.begin(), v.end(), [](int a, int b) { return a < b; });
     std::cout << "  Sortiert: ";
     for (int x : v) std::cout << x << " ";
     std::cout << "\n";
+    std::cout << "  (Mit g++-13: alle Lambdas oben mit 'static' deklarierbar)\n";
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -408,43 +408,52 @@ void demo_string_contains() {
 
 void demo_ranges() {
     std::cout << "\n=== 7. Ranges C++23 ===\n";
+    std::cout << "  HINWEIS: views::enumerate/zip/chunk/slide/repeat → g++-13 nötig.\n";
+    std::cout << "  Hier: äquivalente manuelle Implementierung mit C++20.\n\n";
 
     std::vector<std::string> sprachen{"C++", "Rust", "Go", "Python"};
     std::vector<int>         bewertungen{95, 90, 75, 85};
 
-    // views::enumerate: Index + Wert ohne manuellen Zähler
-    std::cout << "  views::enumerate:\n";
-    for (auto [i, s] : std::views::enumerate(sprachen)) {
-        std::cout << "    [" << i << "] " << s << "\n";
+    // C++23: for (auto [i, s] : std::views::enumerate(sprachen)) { ... }
+    std::cout << "  views::enumerate (g++-13: std::views::enumerate):\n";
+    for (std::size_t i : std::views::iota(std::size_t{0}, sprachen.size())) {
+        std::cout << "    [" << i << "] " << sprachen[i] << "\n";
     }
 
-    // views::zip: Zwei Ranges koppeln (wie Python's zip)
-    std::cout << "\n  views::zip (Sprache + Bewertung):\n";
-    for (auto [spr, wert] : std::views::zip(sprachen, bewertungen)) {
-        std::cout << "    " << spr << ": " << wert << "/100\n";
+    // C++23: for (auto [spr, wert] : std::views::zip(sprachen, bewertungen)) { ... }
+    std::cout << "\n  views::zip (g++-13: std::views::zip):\n";
+    for (std::size_t i : std::views::iota(std::size_t{0},
+                             std::min(sprachen.size(), bewertungen.size()))) {
+        std::cout << "    " << sprachen[i] << ": " << bewertungen[i] << "/100\n";
     }
 
-    // views::chunk: In Blöcke aufteilen
     std::vector<int> v{1, 2, 3, 4, 5, 6, 7, 8};
-    std::cout << "\n  views::chunk(3) von {1..8}:\n";
-    for (auto block : v | std::views::chunk(3)) {
+
+    // C++23: for (auto block : v | std::views::chunk(3)) { ... }
+    constexpr std::size_t chunk_sz = 3;
+    std::cout << "\n  views::chunk(3) (g++-13: std::views::chunk):\n";
+    for (std::size_t start = 0; start < v.size(); start += chunk_sz) {
         std::cout << "    Block: ";
-        for (int x : block) std::cout << x << " ";
+        for (std::size_t i = start; i < std::min(start + chunk_sz, v.size()); ++i)
+            std::cout << v[i] << " ";
         std::cout << "\n";
     }
 
-    // views::slide: Gleitendes Fenster
-    std::cout << "\n  views::slide(3) – gleitendes Fenster:\n";
-    for (auto fenster : v | std::views::slide(3)) {
+    // C++23: for (auto fenster : v | std::views::slide(3)) { ... }
+    constexpr std::size_t slide_sz = 3;
+    std::cout << "\n  views::slide(3) (g++-13: std::views::slide):\n";
+    for (std::size_t i = 0; i + slide_sz <= v.size(); ++i) {
         std::cout << "    Fenster: ";
-        for (int x : fenster) std::cout << x << " ";
+        for (std::size_t j = i; j < i + slide_sz; ++j) std::cout << v[j] << " ";
         std::cout << "\n";
     }
 
-    // views::repeat: Wert wiederholen
-    std::cout << "\n  views::repeat(42, 4): ";
-    for (int x : std::views::repeat(42, 4)) std::cout << x << " ";
+    // C++23: for (int x : std::views::repeat(42, 4)) std::cout << x << " ";
+    std::cout << "\n  views::repeat(42, 4) (g++-13: std::views::repeat): ";
+    for (int rep = 0; rep < 4; ++rep) std::cout << 42 << " ";
     std::cout << "\n";
+
+    std::cout << "\n  → Mit g++-13: alle obigen views direkt als C++23-Einzeiler!\n";
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

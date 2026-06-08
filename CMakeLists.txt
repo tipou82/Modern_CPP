@@ -1,4 +1,14 @@
 cmake_minimum_required(VERSION 3.20)
+
+# Prefer g++-12 or newer so C++23 (Thema 12) compiles without a per-target hack.
+# Must be set before project() – later assignments are ignored by CMake.
+if(NOT DEFINED CMAKE_CXX_COMPILER)
+    find_program(_GXX12 NAMES g++-12 g++-13 g++-14)
+    if(_GXX12)
+        set(CMAKE_CXX_COMPILER "${_GXX12}" CACHE FILEPATH "C++ compiler" FORCE)
+    endif()
+endif()
+
 project(Modern_CPP CXX)
 
 set(CMAKE_CXX_STANDARD 20)
